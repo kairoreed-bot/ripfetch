@@ -7,11 +7,16 @@ import Onlinefix from "../api/game-stuff/onlinefix"
 import Steamrip from "../api/game-stuff/steamrip"
 import Steamunlocked from "../api/game-stuff/steamunlocked"
 import Uploadhaven from "../api/game-stuff/uploadhaven"
+import OvaGames from "../api/game-stuff/ovagames"
+import GOGto from "../api/game-stuff/gogto"
+import GLoad from "../api/game-stuff/gload"
+import Dodi from "../api/game-stuff/dodi"
+import FitGirl from "../api/game-stuff/fitgirl"
 import { getCache, setCache, setSearchCache, setLinksCache } from "./cache"
 import DirectSolver from "@/api/game-stuff/direct"
 import axios from "axios"
 
-const gameSources = [new Game3rb(), new Igg(), new Onlinefix(), new Steamrip(), new Steamunlocked()]
+const gameSources = [new Game3rb(), new Igg(), new Onlinefix(), new Steamrip(), new Steamunlocked(), new OvaGames(), new GOGto(), new GLoad(), new Dodi(), new FitGirl()]
 
 async function getDownloadsForGame(gameName: string): Promise<Record<string, Record<string, string>>> {
     const downloads: Record<string, Record<string, string>> = {}
@@ -62,25 +67,26 @@ async function* getDownloadsForGameSSE(gameName: string, ssePass: any) {
                     total: gameSources.length,
                 }
             })
-            const results = await source.search(gameName)
+
+            const result = await source.getClosestTo(gameName)
+            if (!result) continue
 
             try {
-                for (const result of results) {
-                    const sourceName = `${source.displayName} (${result.title})`
-                    if (!downloads[sourceName]) {
-                        const dls = await source.getDownloads(result.url)
-                        if (Object.keys(dls).length > 0) {
-                            const flatDls: Record<string, string> = {}
-                            for (const [host, links] of Object.entries(dls)) {
-                                for (const [name, url] of Object.entries(links)) {
-                                    flatDls[`${host} - ${name}`] = url
-                                }
+                // for (const result of results) {
+                const sourceName = `${source.displayName} (${result.title})`
+                if (!downloads[sourceName]) {
+                    const dls = await source.getDownloads(result.url)
+                    if (Object.keys(dls).length > 0) {
+                        const flatDls: Record<string, string> = {}
+                        for (const [host, links] of Object.entries(dls)) {
+                            for (const [name, url] of Object.entries(links)) {
+                                flatDls[`${host} - ${name}`] = url
                             }
-                            downloads[sourceName] = flatDls
-                            break
                         }
+                        downloads[sourceName] = flatDls
                     }
                 }
+                // }
             } catch (error) {
                 console.error(`Error getting downloads from ${source.displayName}:`, error)
             }
@@ -107,7 +113,7 @@ export const searchRoute = new Elysia()
         } catch (error) {
             console.error("Search failed, refreshing Algolia key:", error)
             try {
-                await Steam.refreshAlgolia(true)
+                await Steam.refreshAlgoliaDebounce(true)
                 const results = await Steam.search(query.q)
                 await setSearchCache(cacheKey, results)
                 return results

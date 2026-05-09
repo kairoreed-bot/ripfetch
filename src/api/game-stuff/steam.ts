@@ -9,6 +9,7 @@ const ALGOLIA_KEY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000 // 1 month
 
 export default class Steam {
     private static _algoliaKey = "9d194546e80e81d7e401a058b5ce5a66"
+    static refreshPromise: Promise<void>|undefined
 
     static get algoliaKey(): string {
         return this._algoliaKey
@@ -18,8 +19,16 @@ export default class Steam {
         this._algoliaKey = value
     }
 
+    static async refreshAlgoliaDebounce(forceRefresh = false): Promise<void> {
+        if (this.refreshPromise) return this.refreshPromise
+        this.refreshPromise = this.refreshAlgolia(forceRefresh)
+        await this.refreshPromise
+        this.refreshPromise = undefined
+    }
+
     static async refreshAlgolia(forceRefresh = false): Promise<void> {
         if (!forceRefresh) {
+            if (this.refreshPromise) return;
             try {
                 const cachedKey = await getCache(ALGOLIA_KEY_CACHE_KEY)
                 if (cachedKey && typeof cachedKey === "string") {

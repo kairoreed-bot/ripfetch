@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import { DownloadsResult, IGameSource, SearchResult } from "./commonData";
+import { DownloadsResult, genericClosestTo, IGameSource, SearchResult } from "./commonData";
 import Fuse from "fuse.js";
 
 const searchResultRegex = /href="([^"]*)"><span[^>]*>([^<]*)/gm
@@ -57,9 +57,7 @@ export default class Onlinefix implements IGameSource {
     static async getClosestTo(query: string): Promise<SearchResult | null> {
         const results = await this.search(query)
         if (results.length === 0) return null
-        return new Fuse(results, {
-            keys: ["title"]
-        }).search(query)[0]?.item ?? null
+        return genericClosestTo(results, ["title"], query) || null
     }
 
     static async getDownloadsOfClosestTo(query: string): Promise<DownloadsResult | null> {
@@ -118,11 +116,15 @@ export default class Onlinefix implements IGameSource {
         return results
     }
 
-    async search(title: string): Promise<SearchResult[]> {
+    search(title: string): Promise<SearchResult[]> {
         return Onlinefix.search(title)
     }
 
-    async getDownloads(url: string): Promise<DownloadsResult> {
+    getClosestTo(query: string): Promise<SearchResult | null> {
+        return Onlinefix.getClosestTo(query)
+    }
+
+    getDownloads(url: string): Promise<DownloadsResult> {
         return Onlinefix.getDownloads(url)
     }
 }

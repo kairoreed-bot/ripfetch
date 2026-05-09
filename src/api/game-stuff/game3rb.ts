@@ -1,5 +1,5 @@
 import axios from "axios";
-import { DownloadsResult, IGameSource, SearchResult } from "./commonData";
+import { DownloadsResult, genericClosestTo, IGameSource, SearchResult } from "./commonData";
 import Fuse from "fuse.js";
 
 export default class Game3rb implements IGameSource {
@@ -22,9 +22,7 @@ export default class Game3rb implements IGameSource {
     static async getClosestTo(query: string): Promise<SearchResult | null> {
         const results = await this.search(query)
         if (results.length === 0) return null
-        return new Fuse(results, {
-            keys: ["title"]
-        }).search(query)[0]?.item ?? null
+        return genericClosestTo(results, ["title"], query) || null
     }
 
     static async getDownloadsOfClosestTo(query: string): Promise<DownloadsResult | null> {
@@ -68,11 +66,15 @@ export default class Game3rb implements IGameSource {
         return results
     }
 
-    async search(title: string): Promise<SearchResult[]> {
+    search(title: string): Promise<SearchResult[]> {
         return Game3rb.search(title)
     }
 
-    async getDownloads(url: string): Promise<DownloadsResult> {
+    getClosestTo(query: string): Promise<SearchResult | null> {
+        return Game3rb.getClosestTo(query)
+    }
+
+    getDownloads(url: string): Promise<DownloadsResult> {
         return Game3rb.getDownloads(url)
     }
 }

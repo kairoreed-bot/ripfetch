@@ -9,7 +9,7 @@ export default class Steamunlocked implements IGameSource {
     displayName = "SteamUnlocked";
 
     static async search(title: string): Promise<SearchResult[]> {
-        const data = await NetworkRequest.get(`https://steamunlocked.net/?s=${title}`)
+        const data = await NetworkRequest.get(`https://steamunlocked.org/?s=${title}`)
 
         const results: SearchResult[] = []
         for (const match of data.matchAll(searchResultRegex)) {
@@ -52,11 +52,15 @@ export default class Steamunlocked implements IGameSource {
         return results
     }
 
-    async search(title: string): Promise<SearchResult[]> {
+    search(title: string): Promise<SearchResult[]> {
         return Steamunlocked.search(title)
     }
 
-    async getDownloads(url: string): Promise<DownloadsResult> {
+    getClosestTo(query: string): Promise<SearchResult | null> {
+        return Steamunlocked.getClosestTo(query)
+    }
+
+    getDownloads(url: string): Promise<DownloadsResult> {
         return Steamunlocked.getDownloads(url)
     }
 }

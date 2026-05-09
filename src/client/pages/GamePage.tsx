@@ -7,10 +7,22 @@ import { cn } from "../lib/utils"
 import { API_BASE_URL } from "../lib/config"
 
 // Order for download sources (lowercase for case-insensitive matching)
-const SOURCE_ORDER = ["online-fix.me", "igg", "steamrip", "game3rb", "steamunlocked"]
+const SOURCE_ORDER = [
+  "online-fix.me", 
+  "igg", 
+  "gogto",
+  "gload",
+  "steamrip", 
+  "fitgirl",
+  "ovagames",
+  "dodi",
+  "game3rb",
+  "steamunlocked"]
 
 // Trusted domains that should appear first and have special styling
 const TRUSTED_DOMAINS = [
+  "fuckingfast.co",
+  "fuckingfast",
   "megaup.net",
   "gofile",
   "gofile.io", 
@@ -19,10 +31,13 @@ const TRUSTED_DOMAINS = [
   "vikingfile.com",
   "vikingfile",
   "viking file",
+  "datanodes.to",
+  "datanodes",
   "1fichier.com",
   "koramaup.com",
   "buzzheavier",
-  "1cloudfile.com"
+  "1cloudfile.com",
+
 ].map(d => d.toLowerCase())
 
 const SLOW_DOMAINS = [

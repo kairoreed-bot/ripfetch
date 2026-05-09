@@ -1,4 +1,4 @@
-import { DownloadsResult, IGameSource, SearchResult } from "./commonData";
+import { DownloadsResult, genericClosestTo, IGameSource, SearchResult } from "./commonData";
 import urlbluemedia from "./urlbluemedia";
 import Fuse from "fuse.js";
 import NetworkRequest from "./networkRequest";
@@ -27,9 +27,7 @@ export default class Igg implements IGameSource {
     static async getClosestTo(query: string): Promise<SearchResult | null> {
         const results = await this.search(query)
         if (results.length === 0) return null
-        return new Fuse(results, {
-            keys: ["title"]
-        }).search(query)[0]?.item ?? null
+        return genericClosestTo(results, ["title"], query) || null
     }
 
     static async getDownloadsOfClosestTo(query: string): Promise<DownloadsResult | null> {
@@ -87,11 +85,15 @@ export default class Igg implements IGameSource {
         return results
     }
 
-    async search(title: string): Promise<SearchResult[]> {
+    search(title: string): Promise<SearchResult[]> {
         return Igg.search(title)
     }
 
-    async getDownloads(url: string): Promise<DownloadsResult> {
+    getClosestTo(query: string): Promise<SearchResult | null> {
+        return Igg.getClosestTo(query)
+    }
+
+    getDownloads(url: string): Promise<DownloadsResult> {
         return Igg.getDownloads(url)
     }
 }

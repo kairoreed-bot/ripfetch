@@ -27,4 +27,13 @@ export default class Solverr {
             return
         }
     }
+
+    static getActualJson<T>(html: string): T {
+        if (!html) return [] as T
+        let a;
+        for (const match of html.matchAll(/<pre>(.*)<\/pre>/gm)) {
+            a = match[1]
+        }
+        return JSON.parse(a ?? "[]")
+    }
 }

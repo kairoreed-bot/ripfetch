@@ -2,21 +2,18 @@ import axios from "axios";
 import { DownloadsResult, genericClosestTo, IGameSource, SearchResult } from "./commonData";
 import Fuse from "fuse.js";
 
-const searchResultRegex = /<a href="([^"]+)" class="all-over-thumb-link"><[^>]+>([^<]+)/gm
-const downloadLinkRegex = /<strong>([^<]+)<\/strong>[^<]*(?:<\/span>)?<br[^>]*>[^<]*<a href="([^"]+)/gms
-
-export default class Steamrip implements IGameSource {
-    displayName = "SteamRIP";
+export default class GLoad implements IGameSource {
+    displayName = "GLoad";
 
     static async search(title: string): Promise<SearchResult[]> {
-        const req = await axios.get(`https://steamrip.com/?s=${title}`)
+        const req = await axios.get(`https://gload.to/wp-json/wp/v2/posts?_fields=title.rendered,slug&per_page=100&search=${encodeURIComponent(title)}`)
         const data = req.data
 
         const results: SearchResult[] = []
-        for (const match of data.matchAll(searchResultRegex)) {
+        for (const result of data) {
             results.push({
-                title: (match[2] ?? "").replaceAll("Free Download", "").replaceAll("&#8217;", "'").replaceAll("  ", " ").replaceAll("&#8211;", "-").trim(),
-                url: "https://steamrip.com/" + (match[1] ?? "").trim()
+                title: result.title.rendered.replaceAll("-ElAmigos", "").replaceAll("-GOG", "").replaceAll(".", " ").trim(),
+                url: `https://gload.to/${result.slug}`
             })
         }
         return results
@@ -35,31 +32,36 @@ export default class Steamrip implements IGameSource {
     }
 
     static async getDownloads(url: string): Promise<DownloadsResult> {
-        if (!url.includes("steamrip.com")) return {}
+        if (!url.includes("gload.to")) return {}
 
         const req = await axios.get(url)
-        const data = req.data
+        const data: string = req.data
 
         const results: DownloadsResult = {}
-        for (const match of data.matchAll(downloadLinkRegex)) {
-            const host = match[1] ?? ""
-            if (host) {
-                results[host] = results[host] || {}
-                results[host]["Download"] = "https:" + (match[2] ?? "")
+        for (const match of data.matchAll(/<a class="dlhoster[^"]*" href="([^"]+)"[^>]*>.*<span>([^<]+)/gm)) {
+            const url = match[1] ?? ""
+            const host = match[2] ?? ""
+            if (!url || !host) continue
+            if (!url.includes("filecrypt.cc")) {
+                console.warn("Unknown download link: " + url)
+                continue // just to be safe
             }
+            results[host] = results[host] || {}
+            results[host]["Download"] = url
         }
+        
         return results
     }
 
     search(title: string): Promise<SearchResult[]> {
-        return Steamrip.search(title)
+        return GLoad.search(title)
     }
 
     getClosestTo(query: string): Promise<SearchResult | null> {
-        return Steamrip.getClosestTo(query)
+        return GLoad.getClosestTo(query)
     }
 
     getDownloads(url: string): Promise<DownloadsResult> {
-        return Steamrip.getDownloads(url)
+        return GLoad.getDownloads(url)
     }
 }

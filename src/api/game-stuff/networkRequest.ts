@@ -20,7 +20,9 @@ const ALLOWED_ORIGINS = [
     "igg-games.com",
     "steamunlocked.org",
     "steamdb.info",
-    "game3rb.com"
+    "game3rb.com",
+    "gog-games.to",
+    "dodi-repacks.site"
 ]
 
 export async function validateUrl(url: string): Promise<boolean> {
